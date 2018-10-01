@@ -66,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (communicationThread != null) {
-            communicationThread.setKeepRunning(false);
             try {
                 communicationThread.join();
             } catch (Exception ex) {
@@ -99,8 +98,10 @@ public class MainActivity extends AppCompatActivity {
                 while (keepRunning) {
                     try {
                         socket = serverSocket.accept();
-                        communicationThread = new CommunicationThread(socket);
-                        communicationThread.start();
+                        if (socket != null) {
+                            communicationThread = new CommunicationThread(socket);
+                            communicationThread.start();
+                        }
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -115,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
 
     private class CommunicationThread extends Thread {
 
-        private boolean keepRunning = true;
         private Socket clientSocket;
         private BufferedReader bufferedReader = null;
 
@@ -132,21 +132,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             if ( (bufferedReader != null) && (clientSocket != null ) ) {
-                while (keepRunning) {
-                    try {
+                try {
 
-                        String msg = bufferedReader.readLine();
-                        updateConversationHandler.post(new UpdateUiRunning(msg));
+                    String msg = bufferedReader.readLine();
+                    updateConversationHandler.post(new UpdateUiRunning(msg));
 
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             }
-        }
-
-        public void setKeepRunning(boolean keepRunning) {
-            this.keepRunning = keepRunning;
         }
     }
 
